@@ -6,8 +6,8 @@ control and Phone via PC. A paired phone's battery appears when KDE
 Connect runs.
 
 > **Status: early development.** The CLI, the daemon and the tray build and
-> pass their unit tests. Phone via PC and the tray were run once on real
-> hardware. A phone audio link problem is open (see Known issues).
+> pass their unit tests. The daemon and the tray ran once on real hardware.
+> The phone audio link did not work there. See Known issues.
 
 ## Components
 
