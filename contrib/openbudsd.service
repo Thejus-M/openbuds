@@ -1,0 +1,14 @@
+[Unit]
+Description=openbuds daemon: earbud link and Phone via PC
+Documentation=https://github.com/Thejus-M/openbuds
+After=bluetooth.target
+Wants=bluetooth.target
+
+[Service]
+Type=simple
+ExecStart=%h/.local/bin/openbudsd
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

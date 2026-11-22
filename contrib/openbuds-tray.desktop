@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=openbuds
+Comment=Earbud battery and Phone via PC
+Exec=%h/.local/bin/openbuds-tray
+Terminal=false
+Categories=Utility;
+X-GNOME-Autostart-enabled=true

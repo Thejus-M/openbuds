@@ -1,0 +1,16 @@
+[package]
+name = "openbuds-daemon"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+description = "openbudsd: owns the earbud link, routes Phone via PC, writes the state file"
+
+[[bin]]
+name = "openbudsd"
+path = "src/main.rs"
+
+[dependencies]
+openbuds-core = { path = "../openbuds-core" }
+serde_json = "1"

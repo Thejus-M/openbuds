@@ -118,6 +118,10 @@ pub struct Known {
     pub audio: bool,
     /// Bluetooth vendor is Samsung (Modalias vendor 0075).
     pub samsung: bool,
+    /// BlueZ icon name, for example `phone` or `audio-headset`.
+    pub icon: String,
+    /// Service UUIDs the device advertises.
+    pub uuids: Vec<String>,
 }
 
 const OBJECT_MANAGER: &str = "org.freedesktop.DBus.ObjectManager";
@@ -178,6 +182,8 @@ pub fn known_devices() -> zbus::Result<Vec<Known>> {
                 .iter()
                 .any(|u| AUDIO_UUIDS.iter().any(|a| u.starts_with(a))),
             samsung: text("Modalias").starts_with("bluetooth:v0075"),
+            icon: text("Icon"),
+            uuids: uuids.clone(),
         });
     }
     out.sort_by(|a, b| b.connected.cmp(&a.connected).then(a.name.cmp(&b.name)));
@@ -203,3 +209,16 @@ impl Bluez {
     }
 }
 
+
+/// Connect or disconnect one profile on a device. `profile` is a UUID string.
+pub fn profile_call(address: &str, method: &str, profile: &str) -> Result<(), String> {
+    let conn = Connection::system().map_err(|e| e.to_string())?;
+    let path = format!("/org/bluez/hci0/dev_{}", address.to_ascii_uppercase().replace(':', "_"));
+    let proxy = Proxy::new(&conn, SERVICE, path, DEVICE_IFACE).map_err(|e| e.to_string())?;
+    proxy
+        .call::<_, _, ()>(method, &profile)
+        .map_err(|e| match e {
+            zbus::Error::MethodError(_, Some(message), _) => message,
+            other => other.to_string(),
+        })
+}

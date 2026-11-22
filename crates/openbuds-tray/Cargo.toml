@@ -1,0 +1,16 @@
+[package]
+name = "openbuds-tray"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+description = "Tray icon for openbuds: lowest earbud battery drawn on the icon, Phone via PC menu"
+
+[[bin]]
+name = "openbuds-tray"
+path = "src/main.rs"
+
+[dependencies]
+openbuds-core = { path = "../openbuds-core" }
+ksni = "0.2"

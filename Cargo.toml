@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["crates/openbuds-core", "crates/openbuds"]
+members = ["crates/openbuds-core", "crates/openbuds", "crates/openbuds-daemon", "crates/openbuds-tray"]
 
 [workspace.package]
 version = "0.1.0"

@@ -11,8 +11,12 @@
 
 pub mod battery;
 pub mod bluez;
+pub mod ipc;
 pub mod kdeconnect;
+pub mod mpris;
+pub mod phone;
 pub mod route;
+pub mod sink;
 pub mod samsung;
 pub mod status;
 
