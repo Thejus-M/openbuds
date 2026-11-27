@@ -1,0 +1,1 @@
+Galaxy Buds2, fully on Linux. Battery per bud, ANC and ambient, six EQ curves, touch-and-hold per earbud and Find My Buds, right in the Omarchy bar. Not on Omarchy? openbuds brings the CLI, daemon and tray to any desktop: github.com/Thejus-M/openbuds

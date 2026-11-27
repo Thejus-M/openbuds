@@ -1,0 +1,196 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+@font-face{font-family:JB;src:url("file:///usr/share/fonts/TTF/JetBrainsMonoNerdFont-Regular.ttf");font-weight:400}
+@font-face{font-family:JB;src:url("file:///usr/share/fonts/TTF/JetBrainsMonoNerdFont-Bold.ttf");font-weight:700}
+:root{--bg:#121212;--card:#1e1e1e;--card2:#2a2a2a;--fg:#bebebe;--hi:#eaeaea;--dim:#6e6e70;--ac:#e68e0d;--red:#D35F5F}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1080px;height:1920px;overflow:hidden;background:var(--bg);font-family:JB;color:var(--fg)}
+#stage{position:absolute;inset:0}
+.cap{position:absolute;left:80px;right:80px;top:300px;text-align:left}
+.cap h1{font-size:92px;line-height:1.05;color:var(--hi);font-weight:700;letter-spacing:-2px}
+.cap p{font-size:44px;margin-top:26px;color:var(--fg)}
+.cap .ac{color:var(--ac)}
+.card{position:absolute;left:90px;width:900px;background:var(--card);border:2px solid #333;border-radius:28px;padding:44px}
+.ct{font-size:34px;font-weight:700;color:var(--hi);margin-bottom:30px}
+.g{font-family:JB}
+.glow{position:absolute;width:1400px;height:1400px;left:-160px;top:300px;border-radius:50%;background:radial-gradient(circle,rgba(230,142,13,.13),rgba(230,142,13,0) 60%)}
+</style></head>
+<body><div id="stage"></div>
+<script>
+const G=c=>String.fromCodePoint(c);
+const GL={hp:G(0xF02CB),anc:G(0xF0A45),amb:G(0xF07C5),vol:G(0xF057E),mic:G(0xF036C),spot:G(0xF1BC),dots:G(0xF01D8),bell:G(0xF009E),lock:G(0xF0341),bt:G(0xF00B0),phone:G(0xF011C),laptop:G(0xF0322),wifi:G(0xF05A9),bat:G(0xF0079),vol2:G(0xF057E)};
+const BEAT=0.5;
+const cl=(x,a=0,b=1)=>Math.min(b,Math.max(a,x));
+const p=(t,a,b)=>cl((t-a)/(b-a));
+const eo=x=>1-Math.pow(1-x,3);
+const eio=x=>x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2;
+const back=x=>{const c=1.6;return 1+(c+1)*Math.pow(x-1,3)+c*Math.pow(x-1,2)};
+// scene in/out: rise in over 0.4s, fade out over last 0.3s
+function vis(t,a,b){const i=eo(p(t,a,a+.45)),o=1-p(t,b-.3,b);return {o:Math.min(i,o),y:(1-i)*60+(1-o)*-40}}
+function cap(t,a,b,h,sub){const v=vis(t,a,b);const v2=vis(t,a+.25,b);
+ return `<div class="cap"><h1 style="opacity:${v.o};transform:translateY(${v.y}px)">${h}</h1>${sub?`<p style="opacity:${v2.o};transform:translateY(${v2.y}px)">${sub}</p>`:''}</div>`}
+function bud(size,mir,op,col='var(--fg)'){const w=size*.44,h=size*.6;
+ return `<div style="position:relative;width:${w}px;height:${h}px;opacity:${op}">
+ <div style="position:absolute;left:50%;bottom:0;width:${w*.46}px;height:${h*.4}px;border-radius:${w*.18}px;background:${col};transform:translateX(calc(-50% + ${(mir?1:-1)*w*.2}px)) rotate(${mir?-14:14}deg);transform-origin:50% 0"></div>
+ <div style="position:absolute;left:0;top:0;width:${w}px;height:${w*.96}px;border-radius:${w*.46}px;background:${col}"></div>
+ <div style="position:absolute;left:${w*.29}px;top:${w*.27}px;width:${w*.42}px;height:${w*.42}px;border-radius:50%;border:${Math.max(2,size*.035)}px solid var(--bg);opacity:.7"></div></div>`}
+function mark(size,l=.9,r=.9,col){return `<div style="display:flex;gap:${size*.12}px;align-items:flex-start">${bud(size,0,l,col)}${bud(size,1,r,col)}</div>`}
+function ring(v,label,x,y,pr){const R=110,C=2*Math.PI*R,f=C*(v/100)*pr;
+ return `<div style="position:absolute;left:${x}px;top:${y}px;width:260px;height:260px">
+ <svg width="260" height="260"><circle cx="130" cy="130" r="${R}" fill="none" stroke="#333" stroke-width="16"/>
+ <circle cx="130" cy="130" r="${R}" fill="none" stroke="var(--ac)" stroke-width="16" stroke-linecap="round" stroke-dasharray="${f} ${C}" transform="rotate(-90 130 130)"/></svg>
+ <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center"><div style="font-size:64px;font-weight:700;color:var(--hi)">${Math.round(v*pr)}</div><div style="font-size:28px;color:var(--dim)">${label}</div></div></div>`}
+
+const S=[];
+// 1 hook
+S.push([0,2.5,t=>{const s=back(p(t,0,.6));const o=1-p(t,2.2,2.5);
+ return `<div class="glow" style="opacity:${o}"></div>
+ <div style="position:absolute;left:0;right:0;top:560px;display:flex;justify-content:center;opacity:${o};transform:scale(${.3+.7*s})">${mark(380)}</div>
+ <div style="position:absolute;left:80px;right:80px;top:1060px;text-align:center">
+ <h1 style="font-size:104px;color:var(--hi);font-weight:700;opacity:${vis(t,.3,2.5).o};transform:translateY(${vis(t,.3,2.5).y}px)">Galaxy Buds2.</h1>
+ <h1 style="font-size:72px;color:var(--ac);font-weight:700;margin-top:24px;opacity:${vis(t,.9,2.5).o};transform:translateY(${vis(t,.9,2.5).y}px)">Now native on Linux.</h1></div>`}]);
+// 2 bar
+S.push([2.5,5,t=>{const v=vis(t,2.5,5);const sl=eo(p(t,2.7,3.2));const click=p(t,3.9,4.1);const pan=eo(p(t,4.1,4.6));
+ const cx=880, cy=760;const cur=`<div style="position:absolute;left:${cx+ (1-eo(p(t,3.2,3.9)))*-300}px;top:${cy+30+(1-eo(p(t,3.2,3.9)))*300}px;font-size:70px;color:#fff;opacity:${p(t,3.2,3.4)*v.o};transform:scale(${1-.15*Math.sin(click*Math.PI)})">➤</div>`;
+ return cap(t,2.5,5,'It lives in<br>your <span class="ac">bar</span>.')+
+ `<div style="position:absolute;left:40px;right:40px;top:${700-(1-sl)*80}px;height:110px;background:#0d0d0d;border:2px solid #333;border-radius:20px;opacity:${v.o*sl};display:flex;align-items:center;padding:0 36px;gap:36px;font-size:42px">
+ <span style="color:var(--ac)">● 1</span><span>2</span><span>3</span><span style="flex:1"></span>
+ <span>${GL.wifi}</span><span>${GL.vol}</span>
+ <span style="color:var(--ac);padding:6px 16px;border-radius:12px;background:${click>0?'#2a2a2a':'transparent'}">${barmark(64,99,73,94,1)}</span>
+ <span>${GL.bat}</span><span style="font-size:36px">10:24</span></div>
+ <div style="position:absolute;left:180px;width:720px;top:860px;height:${560*pan}px;overflow:hidden;background:var(--card);border:2px solid #333;border-radius:24px;opacity:${v.o*(pan>0?1:0)}">
+ <div style="padding:36px;display:flex;align-items:center;gap:16px;font-size:36px;color:var(--hi);font-weight:700">Buds2 <span style="width:16px;height:16px;border-radius:50%;background:var(--ac)"></span><span style="font-weight:400;color:var(--dim);font-size:30px">both in ear</span></div>
+ <div style="display:flex;justify-content:center;margin-top:30px">${mark(200)}</div>
+ <div style="display:flex;justify-content:space-around;margin-top:40px;font-size:40px;color:var(--hi)"><span>L 99%</span><span>R 73%</span></div></div>`+cur}]);
+// 3 battery
+S.push([5,8,t=>{const v=vis(t,5,8);const pr=eio(p(t,5.4,6.6));const cp=eio(p(t,6,7));
+ return cap(t,5,8,'Every <span class="ac">battery</span>.','Left, right and the case.')+
+ `<div class="card" style="top:${720+v.y}px;height:760px;opacity:${v.o}">
+ ${ring(99,'LEFT',30,90,pr)}${ring(73,'RIGHT',560,90,pr)}
+ <div style="position:absolute;left:340px;top:150px">${mark(150)}</div>
+ <div style="position:absolute;left:220px;right:220px;top:470px;height:150px;border:3px solid #444;border-radius:75px;display:flex;align-items:center;padding:0 28px;gap:22px">
+ <div style="flex:1;height:22px;background:#333;border-radius:11px;overflow:hidden"><div style="width:${94*cp}%;height:100%;background:var(--ac)"></div></div>
+ <div style="font-size:46px;font-weight:700;color:var(--hi);width:120px">${Math.round(94*cp)}%</div></div>
+ <div style="position:absolute;left:0;right:0;top:640px;text-align:center;font-size:30px;color:var(--dim)">CASE</div></div>`}]);
+// 4 noise
+S.push([8,11,t=>{const v=vis(t,8,11);const st=t<9?0:t<9.9?1:2;const pos=t<8.6?0:t<9.2?eio(p(t,8.6,9.0)):t<9.9?1:1+eio(p(t,9.9,10.3));
+ const labs=[['Off',GL.hp],['ANC',GL.anc],['Ambient',GL.amb]];const W=812/3;
+ const lad=p(t,10.3,10.8);
+ return cap(t,8,11,'ANC. Ambient.<br>Off.','<span class="ac">One click.</span>')+
+ `<div class="card" style="top:${760+v.y}px;height:640px;opacity:${v.o}"><div class="ct">Noise Control</div>
+ <div style="position:relative;height:220px;background:var(--card2);border-radius:110px">
+ <div style="position:absolute;top:10px;left:${10+pos*(W-7)}px;width:${W-20}px;height:200px;border-radius:100px;background:var(--ac)"></div>
+ ${labs.map((l,i)=>`<div style="position:absolute;top:0;left:${i*W}px;width:${W}px;height:220px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:${Math.round(pos)===i?'#121212':'var(--fg)'}"><div style="font-size:80px">${l[1]}</div><div style="font-size:32px;font-weight:700">${l[0]}</div></div>`).join('')}</div>
+ <div style="display:flex;align-items:flex-end;gap:20px;margin-top:60px;opacity:${lad}"><span style="font-size:32px;color:var(--dim);width:300px">Ambient level</span>
+ ${[1,2,3].map(i=>`<div style="width:60px;height:${40*i+20}px;border-radius:10px;background:${i<=1+Math.round(lad*2)?'var(--ac)':'#333'}"></div>`).join('')}
+ <span style="font-size:36px;color:var(--hi);margin-left:20px">${['Low','Medium','High'][Math.round(lad*2)]}</span></div></div>`}]);
+// 5 EQ
+const EQ=[['Normal',[0,0,0,0,0]],['Bass boost',[.9,.45,0,-.1,-.2]],['Soft',[.3,.15,-.1,-.45,-.7]],['Dynamic',[.6,.1,-.15,.25,.6]],['Clear',[-.2,0,.25,.5,.55]],['Treble',[-.25,-.1,.1,.55,.95]]];
+S.push([11,13.5,t=>{const v=vis(t,11,13.5);const sel=Math.min(5,Math.floor(cl((t-11.4)/.33,0,5.99)));
+ return cap(t,11,13.5,'Six <span class="ac">EQ</span> presets.','You see the curve.')+
+ `<div class="card" style="top:${760+v.y}px;height:680px;opacity:${v.o}"><div class="ct">Sound Effect</div>
+ <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px">${EQ.map((e,i)=>{const on=i===sel;const pts=e[1].map((g,k)=>`${20+k*55},${70-g*45}`).join(' ');const ap=eo(p(t,11.2+i*.06,11.6+i*.06));
+ return `<div style="height:250px;border-radius:20px;background:${on?'rgba(230,142,13,.14)':'var(--card2)'};border:3px solid ${on?'var(--ac)':'transparent'};display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;opacity:${ap};transform:scale(${.8+.2*ap})">
+ <svg width="260" height="140" viewBox="0 0 260 140"><polyline points="${pts}" transform="translate(0,0)" fill="none" stroke="${on?'#e68e0d':'#8a8a8d'}" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+ <div style="font-size:30px;color:${on?'var(--hi)':'var(--fg)'}">${e[0]}</div></div>`}).join('')}</div></div>`}]);
+// 6 touch
+const TO=[GL.hp,GL.vol,GL.mic,GL.spot,GL.dots];const TN=['Noise control','Volume','Voice assistant','Spotify','Other'];
+S.push([13.5,16,t=>{const v=vis(t,13.5,16);const L=t<14.5?0:t<15.1?2:3;const R=t<14.8?1:3;
+ const row=(n,c)=>`<div style="display:flex;align-items:center;gap:14px;margin-bottom:34px"><div style="width:120px;font-size:34px;color:var(--hi);font-weight:700">${n}</div>
+ ${TO.map((g,i)=>`<div style="width:116px;height:116px;border-radius:22px;display:flex;align-items:center;justify-content:center;font-size:56px;background:${i===c?'var(--ac)':'var(--card2)'};color:${i===c?'#121212':'var(--fg)'}">${g}</div>`).join('')}</div>
+ <div style="margin:-18px 0 40px 134px;font-size:30px;color:var(--dim)">${TN[c]}</div>`;
+ return cap(t,13.5,16,'Touch and hold,<br><span class="ac">per earbud</span>.')+
+ `<div class="card" style="top:${780+v.y}px;height:640px;opacity:${v.o}"><div class="ct">Touch and Hold</div>${row('Left',L)}${row('Right',R)}</div>`}]);
+// 7 switches
+const SW=[[GL.lock,'Touchpad lock'],[G(0xF0297),'Game mode'],[GL.anc,'One-earbud ANC'],[GL.mic,'Sidetone'],[G(0xF03F2),'Call audio'],[G(0xF0A3E),'Spatial audio']];
+S.push([16,19,t=>{const v=vis(t,16,19);const ring=p(t,17.9,18.9);const sh=Math.sin(ring*Math.PI*10)*14*(ring>0&&ring<1?1:0);
+ return cap(t,16,19,'Every <span class="ac">switch</span>.')+
+ `<div class="card" style="top:${620+v.y}px;height:900px;opacity:${v.o}"><div class="ct">More</div>
+ <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">${SW.map((s,i)=>{const on=i<4&&t>16.5+i*.3;
+ return `<div style="height:120px;border-radius:20px;background:var(--card2);display:flex;align-items:center;gap:18px;padding:0 24px;border:3px solid ${on?'var(--ac)':'transparent'}">
+ <span style="font-size:44px;color:${on?'var(--ac)':'var(--fg)'}">${s[0]}</span><span style="flex:1;font-size:28px;color:var(--hi)">${s[1]}</span>
+ <span style="width:64px;height:36px;border-radius:18px;background:${on?'var(--ac)':'#444'};position:relative"><span style="position:absolute;top:4px;left:${on?32:4}px;width:28px;height:28px;border-radius:50%;background:#eaeaea"></span></span></div>`}).join('')}</div>
+ <div style="margin-top:40px;height:170px;border-radius:24px;background:${ring>0&&ring<1?'rgba(230,142,13,.18)':'var(--card2)'};display:flex;align-items:center;justify-content:center;gap:30px;font-size:44px;color:var(--hi)">
+ <span style="font-size:80px;color:var(--ac);display:inline-block;transform:rotate(${sh}deg)">${GL.bell}</span>${ring>0&&ring<1?'Ringing… Stop':'Find my buds'}</div></div>`}]);
+// 8 follow media
+S.push([19,21.5,t=>{const v=vis(t,19,21.5);const m=eio(p(t,19.6,20.6));const back2=eio(p(t,20.8,21.3));const x=m-back2*0;
+ return cap(t,19,21.5,'Buds <span class="ac">follow</span><br>your media.','PC ⇄ phone, via KDE Connect.')+
+ `<div style="position:absolute;left:90px;width:900px;top:${860+v.y}px;height:500px;opacity:${v.o}">
+ <div style="position:absolute;left:30px;top:120px;font-size:220px;color:${x<.5?'var(--ac)':'var(--fg)'}">${GL.laptop}</div>
+ <div style="position:absolute;right:50px;top:120px;font-size:220px;color:${x>=.5?'var(--ac)':'var(--fg)'}">${GL.phone}</div>
+ <div style="position:absolute;left:250px;right:250px;top:250px;border-top:4px dashed #444"></div>
+ <div style="position:absolute;left:${290+x*120}px;top:150px;transform:scale(1)">${mark(200,.9,.9,'#e68e0d')}</div>
+ <div style="position:absolute;left:0;right:0;top:430px;text-align:center;font-size:36px;color:var(--dim)">${x<.5?'Music on this PC':'Video on the phone'}</div></div>`}]);
+// 9 openbuds
+const CMD='openbuds status';
+const OUT=['Galaxy Buds2','  connected: yes','  left:      99%','  right:     73%','  case:      94%','  noise:     ambient'];
+S.push([21.5,24.5,t=>{const v=vis(t,21.5,24.5);const n=Math.floor(cl((t-21.9)/.05,0,CMD.length));const lines=t<22.8?0:Math.min(OUT.length,1+Math.floor((t-22.8)/.1));const tr=eo(p(t,23.5,23.9));
+ return cap(t,21.5,24.5,'<span class="ac">openbuds</span>','Any Linux desktop.<br>Any BlueZ earbuds.')+
+ `<div style="position:absolute;left:60px;width:960px;top:${790+v.y}px;height:560px;background:#0d0d0d;border:2px solid #333;border-radius:24px;opacity:${v.o};padding:40px;font-size:38px;line-height:1.55">
+ <div><span style="color:var(--ac)">❯</span> ${CMD.slice(0,n)}<span style="opacity:${lines?0:Math.floor(t*4)%2}">▌</span></div>
+ ${OUT.slice(0,lines).map((l,i)=>`<div style="white-space:pre;color:${i?'var(--fg)':'var(--hi)'}">${l}</div>`).join('')}</div>
+ <div style="position:absolute;left:220px;right:220px;top:1390px;height:110px;border-radius:20px;background:#1e1e1e;border:2px solid #333;display:flex;align-items:center;justify-content:center;gap:30px;opacity:${v.o*tr};transform:translateY(${(1-tr)*40}px);font-size:38px">
+ <span style="color:var(--dim);font-size:28px">tray</span><span style="color:var(--hi);font-weight:700;background:var(--ac);color:#121212;border-radius:10px;padding:4px 14px">73</span><span style="font-size:30px">Phone via PC · Connect</span></div>`}]);
+// 10 outro
+S.push([24.5,27.01,t=>{const s=back(p(t,24.5,25));const v=vis(t,24.7,30);const v2=vis(t,25,30);
+ return `<div class="glow"></div><div style="position:absolute;left:0;right:0;top:500px;display:flex;justify-content:center;transform:scale(${.4+.6*s})">${mark(320)}</div>
+ <div style="position:absolute;left:60px;right:60px;top:960px;text-align:center">
+ <h1 style="font-size:88px;color:var(--hi);opacity:${v.o};transform:translateY(${v.y}px)">home.buds<span style="color:var(--ac)"> + </span>openbuds</h1>
+ <p style="font-size:44px;margin-top:30px;opacity:${v2.o}">Galaxy Buds2, fully on Linux.</p>
+ <p style="font-size:36px;margin-top:70px;color:var(--ac);opacity:${v2.o}">github.com/Thejus-M/openbuds</p></div>`}]);
+
+// BarMark.qml in SVG: cups = earbud batteries, headband = case battery, number = lower bud.
+function lc(v){return v>=50?'#4caf50':v>=20?'#ff9800':'#e5484d'}
+function barmark(h,L,R,C,pr=1,opts={}){
+ const s=Math.max(1.5,h*.09),cw=Math.max(5,h*.34),ch=h*.58,gap=h*.14,W=cw*2+gap*2+h*.7;
+ const l=L*pr,r=R*pr,c=C*pr,low=Math.min(L,R),rad=cw*.32;
+ const rx=(W-cw)/2,base=h-ch/2,ry=base-s/2,cx=cw/2+rx;
+ const arcLen=Math.PI*(rx-s/2);// approx in scaled space; use pathLength instead
+ const d=`M ${cw/2+s/2} ${base} A ${rx-s/2} ${ry} 0 0 1 ${W-cw/2-s/2} ${base}`;
+ const cup=(x,v,fade)=>{const fh=ch*v/100;const col=lc(v);
+  return `<g opacity="${fade?.55:1}"><clipPath id="c${x|0}${h|0}"><rect x="${x}" y="${h-fh}" width="${cw}" height="${fh}"/></clipPath>
+  <rect x="${x}" y="${h-ch}" width="${cw}" height="${ch}" rx="${rad}" fill="${col}" clip-path="url(#c${x|0}${h|0})"/>
+  <rect x="${x+s/2}" y="${h-ch+s/2}" width="${cw-s}" height="${ch-s}" rx="${rad}" fill="none" stroke="${col}" stroke-width="${s}"/></g>`};
+ return `<svg width="${W}" height="${h}" viewBox="0 0 ${W} ${h}" style="overflow:visible;vertical-align:middle">
+ <path d="${d}" fill="none" stroke="rgba(190,190,190,.35)" stroke-width="${s}" stroke-linecap="round"/>
+ <path d="${d}" pathLength="100" fill="none" stroke="${lc(C)}" stroke-width="${s}" stroke-linecap="round" stroke-dasharray="${c} 200"/>
+ ${cup(0,l,R<L)}${cup(W-cw,r,L<=R)}
+ <text x="${W/2}" y="${h+h*.08}" text-anchor="middle" font-family="JB" font-weight="700" font-size="${h*.62}" fill="${lc(low)}">${Math.round(low*pr)}</text></svg>`}
+
+// New scene: the three-battery bar logo, 5.5s, local time u in [0,5.5)
+function sBat(u){const t=u;const v=vis(t,0,5.5);const pr=eio(p(t,.6,2.2));
+ const hl=t<2.4?-1:t<3.3?0:t<4.2?1:2;
+ const lab=(txt,sub,x,y,i)=>{const on=hl===i||hl===-1&&false;const a=t>2.4+i*.9?1:0;
+  return `<div style="position:absolute;left:${x}px;top:${y}px;width:300px;text-align:center;opacity:${a?(on?1:.45):0};transition:none">
+  <div style="font-size:40px;font-weight:700;color:${on?'var(--ac)':'var(--hi)'}">${txt}</div><div style="font-size:28px;color:var(--dim);margin-top:6px">${sub}</div></div>`};
+ const shrink=eio(p(t,4.6,5.2));
+ return cap(t,0,5.5,'Three batteries.<br><span class="ac">One icon.</span>')+
+ `<div style="position:absolute;left:0;right:0;top:${780+v.y}px;display:flex;justify-content:center;opacity:${v.o};transform:scale(${1-shrink*.5})">${barmark(420,99,73,94,pr)}</div>
+ ${lab('Left bud','cup fills to 99%',30,1300,0)}${lab('Case','arc fills to 94%',390,600+v.y+0*0,2)}${lab('Right bud','cup fills to 73%',750,1300,1)}
+ <div style="position:absolute;left:0;right:0;top:1440px;text-align:center;font-size:32px;color:var(--fg);opacity:${p(t,4.2,4.5)*v.o}">The number is the lower bud.</div>`}
+
+// New scene: follow media without multipoint, 8s, local time u
+function sFollow(u){const t=u;const v=vis(t,0,8);
+ const ph=t<2?0:t<4.5?1:t<6.5?2:3;
+ const m=eio(p(t,4.6,5.4)), back=eio(p(t,6.5,7.1));const x=m-back;// 0=PC 1=phone
+ const steps=['Buds2 pair with one device at a time.','Music on the PC → buds on the PC.','Phone plays → buds hop to the phone.','Phone via PC: phone audio streams through the PC.'];
+ const sv=k=>{const a=[0,2,4.5,6.5][k],b=[2,4.5,6.5,8][k];return vis(t,a,b)};const st=sv(ph);
+ const notes=ph===1||ph===3?[0,1,2].map(i=>{const q=((t*1.2+i/3)%1);return `<div style="position:absolute;left:${120+i*40}px;top:${90-q*120}px;font-size:56px;color:var(--ac);opacity:${1-q}">♪</div>`}).join(''):'';
+ const pnotes=ph===2?[0,1].map(i=>{const q=((t*1.2+i/2)%1);return `<div style="position:absolute;right:${90+i*40}px;top:${90-q*120}px;font-size:56px;color:var(--ac);opacity:${1-q}">♪</div>`}).join(''):'';
+ const flow=ph===3?`<div style="position:absolute;left:250px;right:250px;top:236px;height:8px;background:repeating-linear-gradient(90deg,var(--ac) 0 24px,transparent 24px 48px);background-position:${-t*160}px 0;opacity:.9"></div>`:`<div style="position:absolute;left:250px;right:250px;top:250px;border-top:4px dashed #444"></div>`;
+ const budX=ph===3?395:290+x*165,budY=ph===3?380:150;
+ return cap(t,0,8,'No multipoint?<br><span class="ac">No problem.</span>')+
+ `<div style="position:absolute;left:90px;width:900px;top:${820+v.y}px;height:640px;opacity:${v.o}">
+ <div style="position:absolute;left:30px;top:120px;font-size:220px;color:${(ph===1||ph===3||(ph===0))&&x<.5?'var(--ac)':'var(--fg)'}">${GL.laptop}</div>
+ <div style="position:absolute;right:50px;top:120px;font-size:220px;color:${x>=.5||ph===3?'var(--ac)':'var(--fg)'}">${GL.phone}</div>
+ ${flow}${notes}${pnotes}
+ <div style="position:absolute;left:${budX}px;top:${budY}px">${mark(200,.95,.95,'#e68e0d')}</div>
+ <div style="position:absolute;left:0;right:0;top:${ph===3?560:470}px;text-align:center;font-size:38px;color:var(--hi);opacity:${st.o};transform:translateY(${st.y}px)">${steps[ph]}</div></div>`}
+
+const OLD=S.slice();
+const PLAN=[[OLD[0],0],[OLD[1],2.5],[[0,5.5,sBat],5],[OLD[2],10.5],[OLD[3],13.5],[OLD[4],16.5],[OLD[5],19],[OLD[6],21.5],[[0,8,sFollow],24.5],[OLD[8],32.5],[OLD[9],35.5]];
+window.TOTAL=38;
+window.render=t=>{let h='';for(const [[a,b,f],st] of PLAN){const d=b-a;if(t>=st&&t<st+d)h+=f(t-st+a)}document.getElementById('stage').innerHTML=h};
+window.render(0);
+</script></body></html>
