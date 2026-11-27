@@ -9,6 +9,15 @@ Connect runs.
 > pass their unit tests. The daemon and the tray ran once on real hardware.
 > The phone audio link did not work there. See Known issues.
 
+## Promo video
+
+<a href="promo/brag.mp4"><img src="promo/brag.jpg" alt="openbuds promo video" width="270"></a>
+
+Watch the [38-second promo video](promo/brag.mp4). It shows the Omarchy bar
+widget and openbuds: the three-battery bar icon, noise control, equalizer,
+touch and hold, PC and phone switching without multipoint, and the CLI and
+tray. The script and the feature list are in [`promo/`](promo/).
+
 ## Components
 
 | Binary | What it does |
